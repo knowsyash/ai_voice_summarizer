@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Echo Archive
+
+Local, free audio processing with transcription, summarization, and chat.
+
+## Requirements
+
+- Node.js (for the Next.js app and worker)
+- Python 3.10+ (for the local ML service)
 
 ## Getting Started
 
-First, run the development server:
+### 1) Install Node dependencies
+
+```bash
+npm install
+```
+
+### 2) Start the Next.js app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3) Start the worker (processing queue)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run dev:worker
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4) Start the local ML service (free, open-source)
 
-## Learn More
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r ml-service/requirements.txt
+npm run dev:ml
+```
 
-To learn more about Next.js, take a look at the following resources:
+The first run downloads open-source models locally (Whisper + Flan-T5).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Copy `.env.example` to `.env.local` and adjust as needed. By default, the app
+uses `http://localhost:8000` for the ML service.
 
-## Deploy on Vercel
+```
+ML_SERVICE_URL=http://localhost:8000
+WHISPER_MODEL_SIZE=base
+SUMMARIZER_MODEL=google/flan-t5-base
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Usage
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Open the dashboard at `/dashboard`.
+2. Upload an audio file.
+3. Wait for the transcript + summary to appear.
+4. Ask questions in the chat panel to summarize or explore the dataset.
+# ai_voice_summarizer
