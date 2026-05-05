@@ -1,7 +1,7 @@
 import { getJobsByStatus, updateJob } from "@/lib/jobStore";
 
 const POLL_INTERVAL_MS = 1500;
-const REQUEST_TIMEOUT_MS = 120000;
+const REQUEST_TIMEOUT_MS = 600000;
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL ?? "http://localhost:8000";
 
 async function requestWithTimeout(url: string, options: RequestInit) {

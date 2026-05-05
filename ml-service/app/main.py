@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 from faster_whisper import WhisperModel
 from transformers import pipeline
 
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("echo-archive-ml")
 
@@ -16,7 +18,8 @@ WHISPER_MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "base")
 SUMMARIZER_MODEL = os.getenv("SUMMARIZER_MODEL", "google/flan-t5-base")
 
 _whisper_model: WhisperModel | None = None
-_text_pipeline = None
+_text_tokenizer = None
+_text_model = None
 
 
 def get_whisper_model() -> WhisperModel:
@@ -31,18 +34,16 @@ def get_whisper_model() -> WhisperModel:
     return _whisper_model
 
 
-def get_text_pipeline():
-    global _text_pipeline
-    if _text_pipeline is None:
+def get_text_model():
+    global _text_tokenizer, _text_model
+    if _text_model is None:
         logger.info("Loading text model: %s", SUMMARIZER_MODEL)
-        _text_pipeline = pipeline(
-            "text2text-generation",
-            model=SUMMARIZER_MODEL,
-        )
-    return _text_pipeline
+        _text_tokenizer = AutoTokenizer.from_pretrained(SUMMARIZER_MODEL)
+        _text_model = AutoModelForSeq2SeqLM.from_pretrained(SUMMARIZER_MODEL)
+    return _text_tokenizer, _text_model
 
 
-def chunk_text(text: str, max_chars: int = 3000) -> List[str]:
+def chunk_text(text: str, max_chars: int = 1500) -> List[str]:
     chunks: List[str] = []
     buffer: List[str] = []
     count = 0
@@ -60,14 +61,15 @@ def chunk_text(text: str, max_chars: int = 3000) -> List[str]:
 
 
 def generate_text(prompt: str, max_new_tokens: int = 256) -> str:
-    generator = get_text_pipeline()
-    outputs = generator(
-        prompt,
+    tokenizer, model = get_text_model()
+    inputs = tokenizer(prompt, return_tensors="pt")
+    outputs = model.generate(
+        **inputs,
         max_new_tokens=max_new_tokens,
         do_sample=False,
         num_beams=4,
     )
-    return outputs[0]["generated_text"].strip()
+    return tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
 
 
 def summarize_text(text: str) -> str:

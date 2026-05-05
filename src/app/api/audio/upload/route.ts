@@ -29,7 +29,6 @@ export async function POST(request: Request) {
             );
         }
 
-        const job = await createJob(file.name || "audio.wav");
         const buffer = Buffer.from(await file.arrayBuffer());
         const maxSizeBytes = 50 * 1024 * 1024;
         if (buffer.length > maxSizeBytes) {
@@ -39,9 +38,11 @@ export async function POST(request: Request) {
             );
         }
 
+        const job = await createJob(file.name || "audio.wav", "processing");
         const filePath = await saveUploadBuffer(job.id, file.name, buffer);
 
         await updateJob(job.id, {
+            status: "queued",
             sizeBytes: buffer.length,
             filePath,
         });

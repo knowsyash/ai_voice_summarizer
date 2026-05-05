@@ -47,12 +47,15 @@ async function saveStore(jobs: JobRecord[]) {
     await fs.writeFile(dataFile, JSON.stringify(jobs, null, 2), "utf8");
 }
 
-export async function createJob(filename: string): Promise<JobRecord> {
+export async function createJob(
+    filename: string,
+    status: JobStatus = "queued"
+): Promise<JobRecord> {
     const jobs = await ensureStore();
     const job: JobRecord = {
         id: `job_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
         filename,
-        status: "queued",
+        status,
         createdAt: nowIso(),
         updatedAt: nowIso(),
     };
